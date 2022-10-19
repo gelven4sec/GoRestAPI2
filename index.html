@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestion des attractions</title>
+    <style>
+        table {
+            border: 1px solid black;
+            /*border-collapse: collapse;*/
+        }
+    </style>
+</head>
+<body onload="init()">
+    <!-- Title -->
+    <h1>Gestion des attractions</h1>
+
+    <!-- Get attractions -->
+    <h2>Liste des attractions</h2>
+    <table id="listAttraction">
+        <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>InPark</th>
+            <th>Place</th>
+            <th>Manufacturer</th>
+        </tr>
+    </table>
+    <div id="getError" style="color: red"></div>
+
+
+    <!-- Create attraction -->
+    <h2>Créer une attraction</h2>
+    <input type="text" name="name" id="create_name" placeholder="Name">
+    <input type="text" name="in_park" id="create_in_park" placeholder="In Park">
+    <input type="text" name="place" id="create_place" placeholder="Place">
+    <input type="text" name="manufacturer" id="create_manufacturer" placeholder="Manufacturer">
+    <button type="submit" onclick="createAttraction()">Créer</button>
+    <div id="createError" style="color: red"></div>
+
+    <!-- Update attraction -->
+    <h2>Mettre à jour une attraction</h2>
+    <input type="text" name="id" id="update_id" placeholder="Id">
+    <select name="update" id="update_field">
+        <option value="name">Name</option>
+        <option value="in_park">In Park</option>
+        <option value="place">Place</option>
+        <option value="manufacturer">Manufacturer</option>
+    </select>
+    <input type="text" name="id" id="update_value" placeholder="Value">
+    <button type="submit" onclick="updateAttraction()">Mettre à jour</button>
+    <div id="updateError" style="color: red"></div>
+
+    <!-- Delete attraction -->
+    <h2>Supprimer une attraction</h2>
+    <input type="text" name="id" id="delete_id" placeholder="Id">
+    <button type="submit" onclick="deleteAttraction()">Supprimer</button>
+    <div id="deleteError" style="color: red"></div>
+
+    <script>
+
+    function updateAttraction() {
+        let id = document.getElementById("update_id").value;
+        let select = document.getElementById("update_field");
+        let field = select.options[select.selectedIndex].value;
+        let value = document.getElementById("update_value").value;
+
+        const http = new XMLHttpRequest();
+        http.onload = function() {
+            if (this.status === 200) {
+                location.reload()
+            } else {
+                let error = JSON.parse(this.responseText)
+                let error_dom = document.getElementById("updateError");
+                error_dom.innerHTML = error["Error"]
+            }
+        }
+        http.open("PUT", "attraction", true);
+        http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        http.send("id="+id+"&"+field+"="+value);
+    }
+
+    function deleteAttraction() {
+        let id = document.getElementById("delete_id").value;
+
+        const http = new XMLHttpRequest();
+        http.onload = function() {
+            if (this.status === 200) {
+                location.reload()
+            } else {
+                let error = JSON.parse(this.responseText)
+                let error_dom = document.getElementById("deleteError");
+                error_dom.innerHTML = error["Error"]
+            }
+        }
+        http.open("DELETE", "attraction?id="+id, true);
+        http.send();
+    }
+
+    function createAttraction() {
+        let name = document.getElementById("create_name").value;
+        let in_park = document.getElementById("create_in_park").value;
+        let place = document.getElementById("create_place").value;
+        let manufacturer = document.getElementById("create_manufacturer").value;
+
+        const http = new XMLHttpRequest();
+        http.onload = function() {
+            if (this.status === 200) {
+                location.reload()
+            } else {
+                let error = JSON.parse(this.responseText)
+                let error_dom = document.getElementById("createError");
+                error_dom.innerHTML = error["Error"]
+            }
+        }
+        http.open("POST", "attraction", true);
+        http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        http.send("name="+name+"&in_park="+in_park+"&place="+place+"&manufacturer="+manufacturer);
+    }
+
+    function addRows(rawData) {
+        let data = JSON.parse(rawData)
+        let table = document.getElementById("listAttraction");
+
+        for (let attraction of data) {
+            let row = table.insertRow(1);
+            row.insertCell(0).innerHTML = attraction["Id"];
+            row.insertCell(1).innerHTML = attraction["Name"];
+            row.insertCell(2).innerHTML = attraction["InPark"];
+            row.insertCell(3).innerHTML = attraction["Place"];
+            row.insertCell(4).innerHTML = attraction["Manufacturer"];
+        }
+    }
+
+    function init() {
+        const http = new XMLHttpRequest();
+        http.onload = function() {
+            if (this.status === 200) {
+                addRows(this.responseText);
+            } else {
+                let error = JSON.parse(this.responseText)
+                let error_dom = document.getElementById("getError");
+                error_dom.innerHTML = error["Error"]
+            }
+        }
+        http.open("GET", "attraction", true);
+        http.send();
+    }
+
+</script>
+</body>
+</html>
